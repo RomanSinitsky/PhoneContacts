@@ -41,4 +41,9 @@ public class UserServiceImpl implements UserService {
         List<Usr> all = usrRepo.findAll();
         return all;
     }
+
+    @Override
+    public Usr findByName(String userName) {
+        return usrRepo.findByName(userName);
+    }
 }

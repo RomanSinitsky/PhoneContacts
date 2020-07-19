@@ -8,8 +8,6 @@ import com.rsynytskyi.phonecontacts.model.Email;
 import com.rsynytskyi.phonecontacts.model.Phone;
 import com.rsynytskyi.phonecontacts.model.Usr;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.server.authorization.AuthorizationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

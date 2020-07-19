@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,10 +33,15 @@ public class UsrController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @GetMapping("/greeting")
-    public String greeting(@RequestParam(name="name", required=false, defaultValue="World") String name, Model model) {
-        model.addAttribute("name", name);
-        return "greeting";
+    @GetMapping("/startPage")
+    public String startPage(@AuthenticationPrincipal Usr usr, Model model) {
+        if (usr == null) {
+            model.addAttribute("usr", "user");
+            return "main";
+        } else {
+            model.addAttribute("usr", usr.getName());
+            return "main";
+        }
     }
 
     @ResponseBody

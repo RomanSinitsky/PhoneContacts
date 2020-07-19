@@ -11,4 +11,6 @@ public interface UserService {
     Usr deleteUser(String name);
 
     List<Usr> findAll();
+
+    Usr findByName(String userName);
 }
