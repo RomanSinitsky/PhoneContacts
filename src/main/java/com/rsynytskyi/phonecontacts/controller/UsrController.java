@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Controller
-public class AuthorizationController {
+public class UsrController {
 
     @Autowired
     private UsrRepo usrRepo;
@@ -37,13 +37,6 @@ public class AuthorizationController {
     public String greeting(@RequestParam(name="name", required=false, defaultValue="World") String name, Model model) {
         model.addAttribute("name", name);
         return "greeting";
-    }
-
-    @ResponseBody
-    @GetMapping("/auth")
-    public Usr auth(@AuthenticationPrincipal Usr usr) {
-        usr.setToken("token");
-        return usr;
     }
 
     @ResponseBody

@@ -10,6 +10,9 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import java.util.Objects;
 
 @Entity
@@ -20,6 +23,9 @@ public class Phone {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotEmpty(message = "phone number must not be empty")
+    @Pattern(regexp = "[^a-z, ^A-Z]*", message = "Must not contain letters")
+    @Size(min = 7, max = 20, message = "Phone number length must be from 7 to 20 digits")
     private String phoneNbr;
 
     @ManyToOne(optional = false, targetEntity = Contact.class, cascade = CascadeType.ALL)

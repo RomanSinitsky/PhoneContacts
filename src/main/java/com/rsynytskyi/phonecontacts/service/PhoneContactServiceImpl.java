@@ -8,9 +8,12 @@ import com.rsynytskyi.phonecontacts.model.Email;
 import com.rsynytskyi.phonecontacts.model.Phone;
 import com.rsynytskyi.phonecontacts.model.Usr;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.server.authorization.AuthorizationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,45 +34,15 @@ public class PhoneContactServiceImpl implements PhoneContactService {
 
     @Override
     public Contact add(Contact contact, Usr usr) {
-        Set<Email> savedEmails = new HashSet<>();
-        Set<Phone> savedPhones = new HashSet<>();
-        Set<String> savedEmailsStrings = new HashSet<>();
-        Set<String> savedPhonesStrings = new HashSet<>();
         contact.setUsr(usr);
         Contact ct = new Contact();
         Contact dbContact = contactRepo.findByNameAndUsr(contact.getName(), usr);
         if (dbContact == null) {
             Set<Email> email = contact.getEmails();
-            email.stream().forEach(e -> savedEmails.addAll(emailRepo.findAllByEmail(e.getEmail())));
-
-            for (Email e : savedEmails) {
-                Long id = e.getId();
-                Set<Long> userIdsByEmail = emailRepo.fetchUsers(id);
-                if (userIdsByEmail.contains(usr.getId())) {
-                    savedEmailsStrings.add(e.getEmail());
-                }
-            }
-
             Set<Phone> phone = contact.getPhones();
-            phone.stream().forEach(p -> savedPhones.addAll(phoneRepo.findAllByPhoneNbr(p.getPhoneNbr())));
 
-            for (Phone p : savedPhones) {
-                Long id = p.getId();
-                Set<Long> userIdsByPhone = phoneRepo.fetchUsers(id);
-                if (userIdsByPhone.contains(usr.getId())) {
-                    savedPhonesStrings.add(p.getPhoneNbr());
-                }
-            }
-
-            if (!savedEmailsStrings.isEmpty() || !savedPhonesStrings.isEmpty()) {
-                String existingEmailsInfo = composeString("Emails", savedEmailsStrings);
-                String existingPhonesInfo = composeString("Phone numbers", savedPhonesStrings);
-                String totalInfo;
-                if (!existingEmailsInfo.isEmpty()) {
-                    totalInfo = existingEmailsInfo.concat(". ").concat(existingPhonesInfo);
-                } else {
-                    totalInfo = existingPhonesInfo;
-                }
+            String totalInfo = checkExistingContactDetails(contact, usr);
+            if (!totalInfo.isEmpty()) {
                 ct.setName(contact.getName());
                 ct.setInfo(totalInfo);
                 return ct;
@@ -89,12 +62,48 @@ public class PhoneContactServiceImpl implements PhoneContactService {
     }
 
     public Contact edit(Contact contact, Usr usr) {
-        Contact cntct = contactRepo.findByNameAndUsr(contact.getName(), usr);
-        cntct.setName(contact.getName());
-        cntct.setEmails(contact.getEmails());
-        cntct.setPhones(contact.getPhones());
-        contactRepo.save(cntct);
-        return contact;
+        contact.setUsr(usr);
+        Contact ct = new Contact();
+        Contact databaseContact = contactRepo.findByNameAndUsr(contact.getName(), usr);
+        if (databaseContact == null) {
+            ct.setName(contact.getName());
+            ct.setInfo("Such contact does not exist");
+            return ct;
+        } else {
+            String totalInfo = checkExistingContactDetails(contact, usr);
+            if (totalInfo.isEmpty()) {
+                databaseContact.setName(contact.getName());
+                Set<Email> emails = databaseContact.getEmails();
+                emails.clear();
+                emails.addAll(contact.getEmails());
+                Set<Phone> phones = databaseContact.getPhones();
+                phones.clear();
+                phones.addAll(contact.getPhones());
+                contactRepo.save(databaseContact);
+                databaseContact.setInfo("Contact altered");
+                return databaseContact;
+            } else {
+                ct.setInfo(totalInfo);
+                ct.setName(contact.getName());
+                return ct;
+            }
+        }
+    }
+
+    @Override
+    public Contact delete(String contactName, Usr usr) {
+        Contact ct = new Contact();
+        Contact databaseContact = contactRepo.findByNameAndUsr(contactName, usr);
+        if (databaseContact != null) {
+            contactRepo.delete(databaseContact);
+            ct.setName(contactName);
+            ct.setInfo("Contact is deleted");
+            return ct;
+        }
+        else {
+            ct.setInfo("Such contact does not exist");
+            return ct;
+        }
     }
 
     @Transactional(readOnly = true)
@@ -115,5 +124,51 @@ public class PhoneContactServiceImpl implements PhoneContactService {
             }
         });
         return entity + ": " + reduce + " already used by another user";
+    }
+
+    private String checkExistingContactDetails(Contact contact, Usr usr) {
+        List<Email> savedEmails = new ArrayList<>();
+        List<Phone> savedPhones = new ArrayList<>();
+        Set<String> savedEmailsStrings = new HashSet<>();
+        Set<String> savedPhonesStrings = new HashSet<>();
+        contact.setUsr(usr);
+
+        Set<Email> email = contact.getEmails();
+        email.stream().forEach(e -> savedEmails.addAll(emailRepo.findAllByEmail(e.getEmail())));
+
+        for (Email e : savedEmails) {
+            Long id = e.getId();
+            Set<Long> userIdsByEmail = emailRepo.fetchUsers(id);
+            if (userIdsByEmail.contains(usr.getId())) {
+                savedEmailsStrings.add(e.getEmail());
+            }
+        }
+
+        Set<Phone> phone = contact.getPhones();
+        phone.stream().forEach(p -> savedPhones.addAll(phoneRepo.findAllByPhoneNbr(p.getPhoneNbr())));
+
+        for (Phone p : savedPhones) {
+            Long id = p.getId();
+            Set<Long> userIdsByPhone = phoneRepo.fetchUsers(id);
+            if (userIdsByPhone.contains(usr.getId())) {
+                savedPhonesStrings.add(p.getPhoneNbr());
+            }
+        }
+
+        if (!savedEmailsStrings.isEmpty() || !savedPhonesStrings.isEmpty()) {
+            String existingEmailsInfo = composeString("Emails", savedEmailsStrings);
+            String existingPhonesInfo = composeString("Phone numbers", savedPhonesStrings);
+            String totalInfo;
+            if (!existingEmailsInfo.isEmpty()) {
+                if (!existingPhonesInfo.isEmpty()) {
+                    totalInfo = existingEmailsInfo.concat(". ").concat(existingPhonesInfo);
+                }
+                else {totalInfo = existingEmailsInfo;
+                }
+            } else {
+                totalInfo = existingPhonesInfo;
+            }
+            return totalInfo;
+        } else return "";
     }
 }

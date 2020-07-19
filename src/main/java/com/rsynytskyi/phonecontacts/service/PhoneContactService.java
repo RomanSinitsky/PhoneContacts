@@ -12,4 +12,6 @@ public interface PhoneContactService {
     List<Contact> findAll(Usr usr);
 
     Contact edit(Contact contact, Usr usr);
+
+    Contact delete(String contactName, Usr usr);
 }

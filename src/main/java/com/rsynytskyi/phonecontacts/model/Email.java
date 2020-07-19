@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.validation.constraints.NotEmpty;
 import java.util.Objects;
 
 @Entity
@@ -20,6 +21,8 @@ public class Email {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotEmpty(message = "email must not be empty")
+    @javax.validation.constraints.Email(message = "Email address must conform email-format")
     private String email;
 
     @ManyToOne(optional = false, targetEntity = Contact.class, cascade = CascadeType.ALL)
