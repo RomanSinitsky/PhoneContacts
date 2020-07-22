@@ -30,9 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class AuthorizationTest {
 
     @Autowired
-    ContactController contactController;
-
-    @Autowired
     MockMvc mockMvc;
 
 
