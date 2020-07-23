@@ -1,6 +1,5 @@
 package com.rsynytskyi.phonecontacts;
 
-import com.rsynytskyi.phonecontacts.controller.ContactController;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +30,6 @@ public class AuthorizationTest {
 
     @Autowired
     MockMvc mockMvc;
-
 
     @Test
     public void accessUnauthorized() throws Exception {
