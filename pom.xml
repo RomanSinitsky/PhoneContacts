@@ -20,7 +20,7 @@
         <springboot.version>2.3.1.RELEASE</springboot.version>
         <hibernate.version>5.4.10.Final</hibernate.version>
         <oracle.driver.version>19.3.0.0</oracle.driver.version>
-        <swagger.version>2.9.2</swagger.version>
+        <swagger.version>2.10.0</swagger.version>
     </properties>
 
     <dependencies>
